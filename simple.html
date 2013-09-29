@@ -1,0 +1,77 @@
+<html>
+<head>
+<script>
+;(function ( window ) {
+
+    var PubSub = function(){
+        this.topics = {};
+        this.length = 0;
+    };
+    PubSub.prototype = {
+        publish : function ( topic, args ) {
+            var subscribers = this.topics[topic];
+            if(!subscribers) return false;
+
+            var len     = subscribers ? subscribers.length : 0;
+             
+            setTimeout(function () {
+                while (len--) subscribers[len].func(topic, args);
+            }, 0);
+
+            return true;
+        },
+        subscribe : function ( topic, func ) {
+            var topics = this.topics; 
+            if( !topics[topic] ) topics[topic] = [];
+
+            var token = (++this.length).toString();
+            topics[topic].push({
+                token: token,
+                func: func
+            });
+            return token;
+        },
+        unsubscribe : function ( token ) {
+            var topic = this.topics,
+                i,j,m;
+            for (m in topics) {
+                topic = topics[m];
+                if (topic) {
+                    for (i = 0, j = topic.length; i < j; i++) {
+                        if (topic[i].token === token) {
+                            topic.splice(i, 1);
+                            return token;
+                        }
+                    }
+                }
+            }
+            return false;
+        }
+    };
+
+    window.PubSub = new PubSub;
+
+}( this ));
+PubSub.subscribe('message',function(topic, data){
+    console.log(topic, data)
+});
+PubSub.subscribe('message',function(topic, data){
+    console.log(topic, data)
+});
+PubSub.subscribe('message2',function(topic, data){
+    console.log(topic, data, "what")
+});
+PubSub.publish('message', 'hi')
+PubSub.publish('message2', '00')
+function a(x){
+    function b(y){
+        console.log(x+y) 
+    }
+    b(2)
+}
+a(1);
+</script>
+</head>
+<body>
+</body>
+</html>

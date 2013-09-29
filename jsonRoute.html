@@ -1,0 +1,179 @@
+<html>
+<head>
+</head>
+<body>
+<script>
+/*;(function ( window ) {
+
+    var PubSub = function(){
+        this.topics = {};
+        this.tree   = [];
+        this.length = 0;
+    };
+    PubSub.prototype = {
+        parseMessage : function(message){
+            return this.topics[message]; 
+        }
+        publish : function ( message, args ) {
+            var subscribers = parseMessage(message);
+            if(!subscribers) return false;
+
+            var len     = subscribers ? subscribers.length : 0;
+             
+            setTimeout(function () {
+                while (len--) subscribers[len].func(args);
+            }, 0);
+
+            return true;
+        },
+        subscribe : function ( topic, func ) {
+            var topics = this.topics; 
+            if( !topics[topic] ) topics[topic] = [];
+
+            var token = (++this.length).toString();
+            topics[topic].push({
+                token: token,
+                func: func
+            });
+            return token;
+        },
+        unsubscribe : function ( token ) {
+            var topic = this.topics,
+                i,j,m;
+            for (m in topics) {
+                topic = topics[m];
+                if (topic) {
+                    for (i = 0, j = topic.length; i < j; i++) {
+                        if (topic[i].token === token) {
+                            topic.splice(i, 1);
+                            return token;
+                        }
+                    }
+                }
+            }
+            return false;
+        }
+    };
+
+    window.PubSub = new PubSub;
+
+}( this ));
+PubSub.subscribe('a.b[1].c',function(data){
+    console.log(data)
+});
+PubSub.subscribe('a.b[2]',function(topic, data){
+    console.log(data)
+});
+PubSub.subscribe('a.b[1].c',function(topic, data){
+    console.log(data, "what")
+});
+//如果作用函数相同，则subscribe的二个参数为函数引用
+PubSub.publish('a.b[2]', 'hi')
+PubSub.publish('a.b[1].c', '00')
+*/
+var Node = function(){
+    this.key;
+    this.parent;
+    this.children       = [];
+    this.subscribers    = [];
+};
+var TopicTree   = function(){
+    this.root       = new Node;
+    this.current    = this.root;
+    this.length     = 0;
+};
+TopicTree.prototype = {
+    getNode : function(/*Array*/path){
+        var node        = this.current,
+            key,len,children;
+        while(path.length){
+            key         = path.shift();
+            children    = node.children;
+            len         = children.length;
+            while(len--){
+                node   = children[len];
+                if(node.key == key)  return node
+            }
+        }
+    },
+    mount   : function(/*Array*/path, func){
+        var node        = this.current,
+            key,len,children,match;
+        while(path.length){
+            key         = path.shift();
+            match       = false;
+            parent      = node;
+            children    = node.children;
+            len         = children.length;
+            while(len--){
+                node   = children[len];
+                if(node.key == key){
+                    match   = true;
+                    break;
+                }
+            }
+            if( !match ){
+                node          = new Node;//更改引用
+                node.key      = key;
+                node.parent   = parent;
+                parent.children.push(node);
+            }
+        }
+        node.subscribers.push({
+            token: (++this.length).toString(),
+            func: func
+        });
+    },
+    unmount : function(path){
+    
+    }
+};
+var PubSub  = function(){
+    this.topicTree  = new TopicTree;
+};
+PubSub.prototype    = {
+    message2path    : function(message){
+        return message.replace(/[\.\[]/gim,'/').replace(/\]/gim,'').split('/');
+    },
+    setMessageRoot  : function(){
+    
+    },
+    publish         : function(message, args){
+        var node    = this.topicTree.getNode(this.message2path(message)); 
+        if(!node) return false;
+        var subscribers = node.subscribers,
+            len         = subscribers ? subscribers.length : 0;
+             
+        setTimeout(function () {
+            while (len--) subscribers[len].func(args);
+        }, 0);
+
+        return true;
+    },
+    subscribe       : function(message, func){
+        this.topicTree.mount(this.message2path(message), func);
+    },
+    unsubscribe     : function(){
+        this.topicTree.unmount(this.message2path(message), func);
+    }
+};
+var PubSub = new PubSub;
+PubSub.subscribe('a.b[1].c',function(data){
+    console.log(data)
+});
+PubSub.subscribe('a.b[2]',function(data){
+    console.log(data)
+});
+PubSub.subscribe('a.b[1]',function(data){
+    console.log(data, "what")
+});
+PubSub.subscribe('a.b[1].c',function(data){
+    console.log(data, "what")
+});
+//如果作用函数相同，则subscribe的二个参数为函数引用
+PubSub.publish('a.b[2]', 'hi')
+PubSub.publish('a.b[1].c', '00')
+console.log(PubSub.topicTree);
+</script>
+</body>
+</html>
