@@ -1,0 +1,49 @@
+<html>
+<head>
+    <style>
+        script{
+            display:block; 
+            white-space: pre;
+        }
+    </style>
+    <script src="PubSub.js"></script>
+</head>
+<body>
+    <ul id ="notice">
+    </ul>
+<script>
+    function notice(message){
+        var li = document.createElement('li')
+        li.innerHTML = message;
+        document.getElementById('notice').appendChild(li)
+    }
+    PubSub.subscribe('a.b[1].c',function(data){
+        notice( data +' from a.b[1].c')
+    });
+    PubSub.subscribe('a.b[2]',function(data){
+        notice( data +' from a.b[2]')
+    });
+    PubSub.subscribe('a.b[1]',function(data){
+        notice( data +' from a.b[1]')
+    });
+    var token = PubSub.subscribe('a.b[1].c',function(data){
+        notice( data +' from a.b[1].c')
+    });
+
+    //如果作用函数相同，则subscribe的二个参数为函数引用
+    PubSub.publish('a.b[2]', 'some data')
+    PubSub.publish('a.b[1].c', 'other data')
+    PubSub.unsubscribe(token)
+    PubSub.publish('a.b[1].c', 'more data')
+    
+    PubSub.setMessageRoot('a.b[1]');
+
+    PubSub.subscribe('c',function(data){
+        notice( data +'after set message root to a.b[1]')
+    })
+    PubSub.publish('c', 'data after set message root, the path is short')
+    
+    console.log(PubSub.topicTree);
+</script>
+</body>
+</html>
