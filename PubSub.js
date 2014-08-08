@@ -49,6 +49,7 @@ https://github.com/defims/PubSub
                 len,children,key;
             while(path.length){
                 key         = path.shift();
+                match       = false;
                 children    = node.children;
                 len         = children.length;
                 while(len--){
@@ -107,6 +108,7 @@ https://github.com/defims/PubSub
      *
      */
     var PubSub  = function(){
+		this.status		= [];
         this.topicTree  = new TopicTree;
     };
     PubSub.prototype    = {
@@ -114,9 +116,25 @@ https://github.com/defims/PubSub
             return message.replace(/[\.\[]/gim,'/').replace(/\]/gim,'').split('/');
         },
         setMessageRoot  : function(messageRoot){
-            var topicTree       = this.topicTree;
-            topicTree.current   = topicTree.getNode(this.message2path(messageRoot));
+			var path		= [],
+				topicTree   = this.topicTree,
+				status		= this.status,
+				i,j,item;
+
+			status.push(this.message2path(messageRoot));
+			for(i = 0; i < status.length; i++){
+				item = status[i];
+				for(j = 0; j<item.length; j++){
+					path.push(item[j]);
+				}	
+			}
+			console.log(path,this.status)
+            topicTree.current   = topicTree.getNode(path);
         },
+		restoreMessageRoot	: function(){
+			//use stack to restore
+			this.status.pop();
+		},
         publish         : function(message, args){
             var node    = this.topicTree.getNode(this.message2path(message)); 
             if(!node) return false;

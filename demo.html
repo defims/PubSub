@@ -1,6 +1,9 @@
 <html>
 <head>
     <style>
+		body{
+			font-family	: monospace;
+		}
         script{
             display:block; 
             white-space: pre;
@@ -30,12 +33,15 @@
         notice( data +' from a.b[1].c')
     });
 
-    //如果作用函数相同，则subscribe的二个参数为函数引用
     PubSub.publish('a.b[2]', 'some data')
     PubSub.publish('a.b[1].c', 'other data')
     PubSub.unsubscribe(token)
     PubSub.publish('a.b[1].c', 'more data')
     
+    PubSub.setMessageRoot('a');
+    PubSub.setMessageRoot('b[1]');
+    PubSub.restoreMessageRoot();
+    PubSub.restoreMessageRoot();
     PubSub.setMessageRoot('a.b[1]');
 
     PubSub.subscribe('c',function(data){
